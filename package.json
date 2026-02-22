@@ -1,5 +1,5 @@
 {
-  "name": "fastcase",
+  "name": "fastcase-cli",
   "version": "1.0.0",
   "description": "AI-powered test case generator from specs, designs, and documents",
   "main": "src/index.js",
