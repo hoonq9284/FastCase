@@ -1,0 +1,43 @@
+{
+  "name": "fastcase",
+  "version": "1.0.0",
+  "description": "AI-powered test case generator from specs, designs, and documents",
+  "main": "src/index.js",
+  "bin": {
+    "fastcase": "./bin/fastcase.js"
+  },
+  "scripts": {
+    "test": "node bin/fastcase.js --help"
+  },
+  "keywords": [
+    "testcase",
+    "test",
+    "qa",
+    "ai",
+    "automation",
+    "claude",
+    "openai",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "chalk": "^4.1.2",
+    "clipboardy": "^2.3.0",
+    "commander": "^12.1.0",
+    "inquirer": "^8.2.6",
+    "mime-types": "^2.1.35",
+    "openai": "^4.77.0",
+    "ora": "^5.4.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ]
+}
