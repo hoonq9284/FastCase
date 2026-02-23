@@ -45,14 +45,23 @@ function readClipboardImage() {
 
   try {
     if (platform === 'win32') {
-      // Windows: PowerShell로 클립보드 이미지 저장
-      const psScript = `
-        Add-Type -AssemblyName System.Windows.Forms
-        $img = [System.Windows.Forms.Clipboard]::GetImage()
-        if ($img -eq $null) { exit 1 }
-        $img.Save('${tmpFile.replace(/\\/g, '\\\\')}')
-      `;
-      execSync(`powershell -Command "${psScript}"`, { stdio: 'pipe' });
+      // Windows: PowerShell 스크립트 파일로 클립보드 이미지 저장
+      const psFile = path.join(os.tmpdir(), `fastcase-clip-${Date.now()}.ps1`);
+      const psContent = [
+        'Add-Type -AssemblyName System.Windows.Forms',
+        '$img = [System.Windows.Forms.Clipboard]::GetImage()',
+        'if ($img -eq $null) { exit 1 }',
+        `$img.Save("${tmpFile.replace(/\\/g, '\\\\')}")`,
+      ].join('\r\n');
+      fs.writeFileSync(psFile, psContent);
+      try {
+        execSync(
+          `powershell -ExecutionPolicy Bypass -File "${psFile}"`,
+          { stdio: 'pipe', timeout: 10000 }
+        );
+      } finally {
+        try { fs.unlinkSync(psFile); } catch (e) { /* ignore */ }
+      }
     } else if (platform === 'darwin') {
       // macOS: osascript로 클립보드 이미지 저장
       execSync(
