@@ -70,7 +70,9 @@ async function runGenerate(files, options) {
 
   if (options.output) {
     const outputPath = path.resolve(options.output);
-    fs.writeFileSync(outputPath, result, 'utf-8');
+    const isCsv = outputPath.toLowerCase().endsWith('.csv');
+    const content = isCsv ? '\uFEFF' + result : result;
+    fs.writeFileSync(outputPath, content, 'utf-8');
     console.log(chalk.green(`✓ Test cases saved to ${outputPath}`));
   } else {
     console.log(result);
