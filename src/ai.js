@@ -28,7 +28,7 @@ async function callClaude(apiKey, systemPrompt, userContent) {
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 8192,
+    max_tokens: 16384,
     system: systemPrompt,
     messages,
   });
@@ -59,7 +59,7 @@ async function callOpenAI(apiKey, systemPrompt, userContent) {
 
   const response = await client.chat.completions.create({
     model: 'gpt-4o',
-    max_tokens: 8192,
+    max_tokens: 16384,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessages },
