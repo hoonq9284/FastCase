@@ -26,7 +26,7 @@ program
   .argument('[files...]', 'Spec files to analyze (md, txt, png, jpg, etc.)')
   .option('-c, --clipboard', 'Read spec from clipboard')
   .option('-o, --output <file>', 'Output file path (default: stdout)')
-  .option('-f, --format <format>', 'Output format: markdown | csv | json', 'markdown')
+  .option('-f, --format <format>', 'Output format: markdown | csv | json | xlsx', 'markdown')
   .option('-l, --lang <lang>', 'Output language: ko | en', 'ko')
   .action(async (files, options) => {
     if (files.length === 0 && !options.clipboard) {
@@ -43,6 +43,7 @@ program
       console.log('    fastcase ./spec.md ./flow.png');
       console.log('    fastcase ./spec.md -o testcases.md');
       console.log('    fastcase ./spec.md -f csv -o testcases.csv');
+      console.log('    fastcase ./spec.md -o testcases.xlsx');
       console.log('    fastcase --clipboard');
       console.log('');
       return;
