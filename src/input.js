@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const { execSync } = require('child_process');
 const mime = require('mime-types');
 const clipboardy = require('clipboardy');
 
@@ -37,16 +39,79 @@ function readFileInput(filePath) {
   };
 }
 
-function readClipboard() {
-  const content = clipboardy.readSync();
-  if (!content || content.trim().length === 0) {
-    throw new Error('Clipboard is empty');
+function readClipboardImage() {
+  const tmpFile = path.join(os.tmpdir(), `fastcase-clip-${Date.now()}.png`);
+  const platform = os.platform();
+
+  try {
+    if (platform === 'win32') {
+      // Windows: PowerShell로 클립보드 이미지 저장
+      const psScript = `
+        Add-Type -AssemblyName System.Windows.Forms
+        $img = [System.Windows.Forms.Clipboard]::GetImage()
+        if ($img -eq $null) { exit 1 }
+        $img.Save('${tmpFile.replace(/\\/g, '\\\\')}')
+      `;
+      execSync(`powershell -Command "${psScript}"`, { stdio: 'pipe' });
+    } else if (platform === 'darwin') {
+      // macOS: osascript로 클립보드 이미지 저장
+      execSync(
+        `osascript -e 'set theFile to POSIX file "${tmpFile}"' -e 'try' -e 'set theImage to the clipboard as «class PNGf»' -e 'set fp to open for access theFile with write permission' -e 'write theImage to fp' -e 'close access fp' -e 'on error' -e 'return "no image"' -e 'end try'`,
+        { stdio: 'pipe' }
+      );
+    } else {
+      // Linux: xclip
+      execSync(`xclip -selection clipboard -t image/png -o > "${tmpFile}"`, {
+        stdio: 'pipe',
+        shell: true,
+      });
+    }
+
+    if (!fs.existsSync(tmpFile) || fs.statSync(tmpFile).size === 0) {
+      return null;
+    }
+
+    const data = fs.readFileSync(tmpFile);
+    const base64 = data.toString('base64');
+
+    // 임시 파일 삭제
+    try { fs.unlinkSync(tmpFile); } catch (e) { /* ignore */ }
+
+    return {
+      type: 'image',
+      name: 'clipboard-image.png',
+      mimeType: 'image/png',
+      base64,
+    };
+  } catch (e) {
+    // 임시 파일 정리
+    try { fs.unlinkSync(tmpFile); } catch (e2) { /* ignore */ }
+    return null;
   }
-  return {
-    type: 'text',
-    name: 'clipboard',
-    content,
-  };
+}
+
+function readClipboard() {
+  // 1. 먼저 이미지 시도
+  const image = readClipboardImage();
+  if (image) {
+    return image;
+  }
+
+  // 2. 이미지 없으면 텍스트 시도
+  try {
+    const content = clipboardy.readSync();
+    if (content && content.trim().length > 0) {
+      return {
+        type: 'text',
+        name: 'clipboard',
+        content,
+      };
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  throw new Error('Clipboard is empty. Copy text or capture a screenshot first.');
 }
 
 function collectInputs(files, options) {
